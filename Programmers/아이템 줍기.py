@@ -1,63 +1,49 @@
-from collections import defaultdict
-import heapq
+from collections import deque
 
 
 def solution(rectangle, characterX, characterY, itemX, itemY):
-    # 좌표를 2배로 확대하여 정밀도를 높입니다
-    MAX = 102
-    field = [[0] * MAX for _ in range(MAX)]
+    dir = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
-    # 직사각형 그리기
-    for r in rectangle:
-        x1, y1, x2, y2 = map(lambda x: x, r)
-        for i in range(x1, x2 + 1):
-            for j in range(y1, y2 + 1):
-                if x1 < i < x2 and y1 < j < y2:
-                    field[i][j] = 2
-                elif field[i][j] != 2:
-                    field[i][j] = 1
+    grid = [[-1] * 102 for _ in range(102)]
 
-    # 그래프 생성
-    graph = defaultdict(list)
-    dx = [-1, 1, 0, 0]
-    dy = [0, 0, -1, 1]
+    for rect in rectangle:
+        x1, y1, x2, y2 = [i * 2 for i in rect]
+        for x in range(x1 + 1, x2):
+            for y in range(y1 + 1, y2):
+                grid[x][y] = 0
 
-    for x in range(MAX):
-        for y in range(MAX):
-            if field[x][y] == 1:
-                for i in range(4):
-                    nx, ny = x + dx[i], y + dy[i]
-                    if 0 <= nx < MAX and 0 <= ny < MAX and field[nx][ny] == 1:
-                        graph[(x, y)].append((nx, ny))
+    for rect in rectangle:
+        x1, y1, x2, y2 = [i * 2 for i in rect]
+        for x in range(x1, x2 + 1):
+            if grid[x][y1] != 0:
+                grid[x][y1] = 1
+            if grid[x][y2] != 0:
+                grid[x][y2] = 1
+        for y in range(y1, y2 + 1):
+            if grid[x1][y] != 0:
+                grid[x1][y] = 1
+            if grid[x2][y] != 0:
+                grid[x2][y] = 1
 
-    # 다익스트라 알고리즘
-    def dijkstra(start, end):
-        distances = defaultdict(lambda: float('inf'))
-        distances[start] = 0
-        queue = [(0, start)]
+    visited = [[0] * 102 for _ in range(102)]
+    dq = deque()
+    dq.append((characterX * 2, characterY * 2, 0))
+    visited[characterX * 2][characterY * 2] = 1
 
-        while queue:
-            current_distance, current_node = heapq.heappop(queue)
+    while dq:
+        x, y, d = dq.popleft()
 
-            if current_distance > distances[current_node]:
+        if x == itemX * 2 and y == itemY * 2:
+            return d // 2
+
+        for dx, dy in dir:
+            nextX, nextY = x + dx, y + dy
+
+            if 0 > nextX or 102 <= nextX or 0 > nextY or 102 <= nextY or visited[nextX][nextY] == 1 or grid[nextX][
+                nextY] != 1:
                 continue
 
-            if current_node == end:
-                return current_distance
+            dq.append((nextX, nextY, d + 1))
+            visited[nextX][nextY] = 1
 
-            for neighbor in graph[current_node]:
-                distance = current_distance + 1
-                if distance < distances[neighbor]:
-                    distances[neighbor] = distance
-                    heapq.heappush(queue, (distance, neighbor))
-
-        return -1  # 경로가 없는 경우
-
-    # 시작점과 도착점의 좌표를 2배로 확대
-    start = (characterX, characterY)
-    end = (itemX, itemY)
-
-    # 최단 거리 계산 및 반환 (2로 나누어 원래 크기로 변환)
-    return dijkstra(start, end) // 2
-
-print(solution([[1,1,7,4],[3,2,5,5],[4,3,6,9],[2,6,8,8]],1,3,7,8))
+    return 0
