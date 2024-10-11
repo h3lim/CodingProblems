@@ -26,5 +26,3 @@ class Solution:
             return False
 
 Solution = Solution()
-
-print(Solution.partition("aab"))
