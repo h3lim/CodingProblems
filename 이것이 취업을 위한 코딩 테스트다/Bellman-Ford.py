@@ -10,23 +10,20 @@ for _ in range(e):
     sv,ev,cost = map(int, input().split())
     edges.append((sv,ev,cost))
 
-def bellmanFord(start):
+
+def bellman_ford(graph, start, n):
+    distance = [float("inf")] * n
     distance[start] = 0
-    for i in range(v):
-        for j in range(e):
-            currNode, nextNode, edgeCost = edges[j]
-            if distance[currNode] != INF and distance[currNode] + edgeCost < distance[nextNode]:
-                distance[nextNode] = distance[currNode] + edgeCost
 
-                if i == v - 1:
-                    return False
+    for i in range(n - 1):
+        for u, v, w in graph:
+            if distance[u] != float("inf") and distance[u] + w < distance[v]:
+                distance[v] = distance[u] + w
 
-    return True
+    for u, v, w in graph:
+        if distance[u] != float("inf") and distance[u] + w < distance[v]:
+            print("Negative weight cycle detected.")
 
-if bellmanFord(1):
-    for i in range(2, v + 1):
-        if distance[i] != INF:
-            print(distance[i])
+            return distance
 
-else:
-    print("A negative cycle exists")
+bellman_ford(edges,1,v)
